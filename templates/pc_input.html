@@ -2,24 +2,36 @@
 <html>
 <head>
     <meta charser="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, height= device-device-height"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <link rel="stylesheet" href="{{url_for('static', filename='pc_des.css')}}">
 </head>
 <body>
-    <h1>PC registeration website</h1>
-    <h3>Welcome to this site this site is prepared to register pc's of students to handle their belongingness. </h3>
+   
     <form action="/belong" method="POST">
-        <label>Holder_name: </label><br>
-        <input type="text" name="holder_name" value="{{holder_name}}"><br>
-        <label>Id_number: </label><br>
-        <input type="text" name="id_number" value="{{id_number}}"><br>
-        <label>Pc_brand: </label><br>
-        <input type="text" name="pc_brand" value="{{pc_brand}}"><br>
-        <label>Serial_number: </label><br>
-        <input type="text" name="serial_number" value="{{serial_number}}"><br><br>
-        {% if register %}
-        <h2>{{register}}</h2>
-        {% endif %}
-        <button type="submit">Register</button>
-    </form>
+        <div class="content">
+            <div class="box">
+                <h1 class="title">PC registration</h1>
+                
+                <div class="upper-row">
+                    <input type="text" name="holder_name" value="{{holder_name}}" placeholder="Enter your name">
+        
+                    <input type="text" name="id_number" value="{{id_number}}" placeholder="Enter your ID number"
+                        class="id_number">
+                </div>
+        
+                <div class="lower-row">
+                    <input type="text" name="pc_brand" value="{{pc_brand}}" placeholder="Enter PC brand">
+        
+                    <input type="text" name="serial_number" value="{{serial_number}}" placeholder="Enter serial number">
+                </div>
+            
+                <button type="submit" class="register">Register</button>
+            </div>
+            {% if register %}
+            <h3>{{register}}</h3>
+            {% endif %}
+            </form>
+        </div>
+        
 </body>
 </html>
