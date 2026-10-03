@@ -32,10 +32,10 @@ def find_pc(id_number, serial_number):
         return ("Pc is available.", data)
     else:
         return ("Pc not found.", None)
-def update_pc(id_number, new_pc_brand, new_serial_number):
+def update_pc(id_number, serial_number, new_pc_brand, new_serial_number):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("UPDATE pc_data SET pc_brand= ?, serial_number= ? WHERE id_number= ?", (new_pc_brand, new_serial_number, id_number))
+    cursor.execute("UPDATE pc_data SET pc_brand= ?, serial_number= ? WHERE id_number= ? AND serial_number= ?", (new_pc_brand, new_serial_number, id_number, serial_number))
     if cursor.rowcount > 0:
         conn.commit()
         conn.close()
@@ -61,8 +61,51 @@ def pc_belong():
             return "Serial_number must be a combinations of characters."
 
     except (TypeError, ValueError) as e:
-        return f"Input is requried: {e}."
+        return f"Error occured: {e}."
     register = register_pc(holder_name, id_number, serial_number, pc_brand)
     return render_template("pc_input.html", holder_name= holder_name, pc_brand= pc_brand, serial_number= serial_number, register = register)
+@app.route('/find', methods= [ 'GET','POST'])
+def pc_search():
+    if request.method == "GET":
+        return render_template("pc_find.html")
+    id_number = request.form.get("id_number", "").strip()
+    serial_number = request.form.get("serial_number", "").strip()
+    search_values = [id_number, serial_number]
+
+    try:
+        if any(not val for val in search_values):
+            return "Something is empty check your inputs."
+        elif not re.match(r"^\d{4}/\d{2}$", id_number):
+            return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
+        elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
+            return "Serial_number must have a combination of characters."
+    except (TypeError, ValueError):
+        return "Unexpected error occurred."
+    
+    search = find_pc(id_number, serial_number)
+    return render_template("pc_find.html", id_number= id_number, serial_number= serial_number, search= search)
+@app.route('/update', methods= ['GET', 'POST'])
+def alter_pc():
+    if request.method == 'GET':
+        return render_template("pc_update.html")
+    
+    id_number = request.form.get("id_number", "").strip()
+    serial_number = request.form.get("serial_number", "").strip()
+    found = find_pc(id_number, serial_number)
+    if found:
+        new_pc_brand = request.form.get("new_pc_brand", "").strip()
+        new_serial_number = request.form.get("new_serial_number", "").strip()
+        values = [new_pc_brand, new_serial_number]
+        try:
+            if any(not val for val in values):
+                return "Empty section is noticed."
+            elif not re.match(r"^\d{4}/\d{2}$", id_number):
+                return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
+            elif not re.match(r"^[A-Za-z0-9]+$", new_serial_number):
+                return "Serial_number must have a combination of characters."
+        except (ValueError, TypeError):
+            return "Unexpected error occurred."
+    update = update_pc(id_number, serial_number, new_pc_brand, new_serial_number)
+    return render_template("pc_update.html", id_number=id_number, new_pc_brand=new_pc_brand, new_serial_number=new_serial_number,found=found, update=update)
 if __name__ == "__main__":
     app.run(debug= True)
