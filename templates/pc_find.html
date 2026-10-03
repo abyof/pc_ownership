@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Find Pc</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='pc_load.css')}}">
+</head>
+<body>
+    <form action="/find" method="POST">
+        <div class="search-box">
+            <h1 class="search-title">Search your PC</h1>
+            <div class="search-input">
+                <input type="text" name="id_number" value="{{id_number}}" placeholder="Enter your id_number">
+                <input type="text" name="serial_number" value="{{serial_number}}" placeholder="Enter your serial_number">
+            </div>
+            <button type="submit" class="search-btn">Search PC</button>
+            {% if search %}
+            <h3>{{search}}</h3>
+            {% endif %}
+        </div>
+        
+    </form>
+</body>
+</html>
