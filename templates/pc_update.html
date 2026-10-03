@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Update Pc data</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='pc_load.css')}}">
+</head>
+
+<body>
+    <form action="/update" method="POST">
+        <div class="search-box">
+            <h1 style="color:aliceblue">Update pc data</h1>
+            <input type="text" name="id_number" value="{{id_number}}" placeholder="Enter your id number">
+            <input type="text" name= "serial_number" value="{{serial_number}}" placeholder="Enter your old serial number">
+            <button type="submit">Verify pc</button>
+            {%if found%}
+            <input type="text" name="new_pc_brand" value="{{new_pc_brand}}" placeholder="Enter your new pc brand">
+            <input type="text" name="new_serial_number" value="{{new_serial_number}}" placeholder="Enter your new serial number">
+            <button type="submit">Update pc data</button>
+            {% endif %}
+        </div>
+        
+        {% if update%}
+        <h3>{{update}}</h3>
+        {% endif %}
+    </form>
+</body>
+</html>
