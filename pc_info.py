@@ -85,27 +85,47 @@ def pc_search():
     search = find_pc(id_number, serial_number)
     return render_template("pc_find.html", id_number= id_number, serial_number= serial_number, search= search)
 @app.route('/update', methods= ['GET', 'POST'])
+
 def alter_pc():
     if request.method == 'GET':
         return render_template("pc_update.html")
-    
-    id_number = request.form.get("id_number", "").strip()
-    serial_number = request.form.get("serial_number", "").strip()
-    found = find_pc(id_number, serial_number)
-    if found:
+    id_number = ""
+    serial_number = ""
+    new_pc_brand = ""
+    new_serial_number = ""
+    found = None
+    update = None
+
+    user_action = request.form.get("action")
+
+    if user_action == "verify":
+        id_number = request.form.get("id_number", "").strip()
+        serial_number = request.form.get("serial_number", "").strip()
+        values = [id_number, serial_number]
+        try:
+            if any(not val for val in values):
+                return "Something is empty check your inputs."
+            elif not re.match(r"^\d{4}/\d{2}$", id_number):
+                return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
+            elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
+                return "Serial_number must have a combination of characters."
+        except (TypeError, ValueError):
+            return "Unexpected error occurred."
+        found = find_pc(id_number, serial_number)
+    elif user_action == "update":
         new_pc_brand = request.form.get("new_pc_brand", "").strip()
         new_serial_number = request.form.get("new_serial_number", "").strip()
         values = [new_pc_brand, new_serial_number]
         try:
             if any(not val for val in values):
-                return "Empty section is noticed."
-            elif not re.match(r"^\d{4}/\d{2}$", id_number):
-                return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
+                return "Something is empty check your inputs."
             elif not re.match(r"^[A-Za-z0-9]+$", new_serial_number):
                 return "Serial_number must have a combination of characters."
-        except (ValueError, TypeError):
+        except (TypeError, ValueError):
             return "Unexpected error occurred."
-    update = update_pc(id_number, serial_number, new_pc_brand, new_serial_number)
-    return render_template("pc_update.html", id_number=id_number, new_pc_brand=new_pc_brand, new_serial_number=new_serial_number,found=found, update=update)
+        update = update_pc(id_number, serial_number, new_pc_brand, new_serial_number)
+        found = True
+
+    return render_template("pc_update.html", id_number=id_number, new_pc_brand=new_pc_brand, new_serial_number=new_serial_number, found= found, update=update)
 if __name__ == "__main__":
     app.run(debug= True)
