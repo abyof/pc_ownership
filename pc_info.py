@@ -83,7 +83,15 @@ def pc_search():
         return "Unexpected error occurred."
     
     search = find_pc(id_number, serial_number)
-    return render_template("pc_find.html", id_number= id_number, serial_number= serial_number, search= search)
+    status_message = search[0]
+    info = search[1]
+    holder_name = id_num = serial_num = pc_brand = ""
+    if info:
+        holder_name = info[0]
+        id_num = info[1]
+        serial_num = info[2]
+        pc_brand = info[3]
+    return render_template("pc_find.html", holder_name= holder_name, id_number= id_num, serial_number= serial_num, pc_brand= pc_brand, status_message= status_message, info= info)
 @app.route('/update', methods= ['GET', 'POST'])
 
 def alter_pc():
