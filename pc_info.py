@@ -35,13 +35,15 @@ def find_pc(id_number, serial_number):
 def update_pc(id_number, serial_number, new_pc_brand, new_serial_number):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("UPDATE pc_data SET pc_brand= ?, serial_number= ? WHERE id_number= ? AND serial_number= ?", (new_pc_brand, new_serial_number, id_number, serial_number))
-    if cursor.rowcount > 0:
-        conn.commit()
+    try:
+        cursor.execute("UPDATE pc_data SET pc_brand= ?, serial_number= ? WHERE id_number= ? AND serial_number= ?", (new_pc_brand, new_serial_number, id_number, serial_number))
+        if cursor.rowcount > 0:
+            conn.commit()
+            return "Pc's info updated successfully." 
+        else:
+            return "Update failed. No pc found by the provided id number."
+    finally:
         conn.close()
-        return "Pc's info updated successfully." 
-    else:
-        return "Update failed. No pc found by the provided id number."
 @app.route('/')
 def home():
     return render_template("pc_input.html")
@@ -99,8 +101,9 @@ def alter_pc():
         return render_template("pc_update.html")
     id_number = ""
     serial_number = ""
-    new_pc_brand = ""
     new_serial_number = ""
+    new_pc_brand = ""
+    user_action = None
     found = None
     update = None
 
@@ -120,20 +123,24 @@ def alter_pc():
         except (TypeError, ValueError):
             return "Unexpected error occurred."
         found = find_pc(id_number, serial_number)
-    elif user_action == "update":
-        new_pc_brand = request.form.get("new_pc_brand", "").strip()
+        status_message = found[0]
+        show = found[1]
+    if user_action == "update":
         new_serial_number = request.form.get("new_serial_number", "").strip()
-        values = [new_pc_brand, new_serial_number]
+        new_pc_brand = request.form.get("new_pc_brand", "").strip()
+        values = [new_serial_number, new_pc_brand]
         try:
             if any(not val for val in values):
                 return "Something is empty check your inputs."
-            elif not re.match(r"^[A-Za-z0-9]+$", new_serial_number):
+            elif not re.match(r"^\d{4}/\d{2}$", id_number):
+                return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
+            elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
                 return "Serial_number must have a combination of characters."
         except (TypeError, ValueError):
             return "Unexpected error occurred."
         update = update_pc(id_number, serial_number, new_pc_brand, new_serial_number)
         found = True
 
-    return render_template("pc_update.html", id_number=id_number, new_pc_brand=new_pc_brand, new_serial_number=new_serial_number, found= found, update=update)
+    return render_template("pc_update.html", id_number=id_number,serial_number= serial_number, found= found, status_message= status_message, show= show, new_serial_number= new_serial_number, new_pc_brand= new_pc_brand, update= update)
 if __name__ == "__main__":
     app.run(debug= True)
