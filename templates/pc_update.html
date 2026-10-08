@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Update Pc data</title>
+    <title>verify Pc data</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{url_for('static', filename='pc_alter.css')}}">
@@ -10,23 +10,26 @@
 
 <body>
     <form action="/update" method="POST">
-        <div class="update-box">
-            <h1 class="update-title">Update pc data</h1>
-            <div class="update-input">
+        <div class="verify-box">
+            <h1 class="verify-title">verify pc data</h1>
+            <div class="verify-input">
                 <input type="text" name="id_number" value="{{id_number}}" placeholder="Enter your id number">
                 <input type="text" name="serial_number" value="{{serial_number}}" placeholder="Enter your old serial number">
             </div>
-            
             <button type="submit" name="action" value="verify" class="verify-btn">Verify pc</button>
-            {%if found%}
-            <input type="text" name="new_pc_brand" value="{{new_pc_brand}}" placeholder="Enter your new pc brand">
-            <input type="text" name="new_serial_number" value="{{new_serial_number}}" placeholder="Enter your new serial number">
-            <button type="submit" name="action" value="update">Update pc data</button>
-            {% endif %}
-            {% if update%}
-            <h3>{{update}}</h3>
-            {% endif %}
+            <h3>{{status_message}}</h3>
         </div>
+        <div>
+            {%if show%}
+            <div>
+                <h1>Update pc data</h1>
+                <input type="text" name="new_serial_number" value="{{new_serial_number}}"
+                    placeholder="Enter your new serial number">
+                <input type="text" name="new_pc_brand" value="{{new_pc_brand}}" placeholder="Enter your new pc brand">
+            </div>
+            <button type="submit" name="action" value="update">Update Pc</button>
+        </div>   
+        {% endif %}
     </form>
 </body>
 </html>
