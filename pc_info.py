@@ -19,19 +19,23 @@ def register_pc(holder_name, id_number, serial_number, pc_brand):
         cursor = conn.cursor()
         cursor.execute("INSERT INTO pc_data VALUES(?,?,?,?)", (holder_name, id_number, serial_number, pc_brand))
         conn.commit()
-        conn.close()
         return "PC's info registered successfully."
     except sqlite3.IntegrityError as e:
         return f"This id already exists. Error occurred. {e}"
+    finally:
+        conn.close()
 def find_pc(id_number, serial_number):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM pc_data WHERE id_number = ? AND serial_number = ?", (id_number, serial_number))
-    data = cursor.fetchone()
-    if data:
-        return ("Pc is available.", data)
-    else:
-        return ("Pc not found.", None)
+    try:
+        cursor.execute("SELECT * FROM pc_data WHERE id_number = ? AND serial_number = ?", (id_number, serial_number))
+        data = cursor.fetchone()
+        if data:
+            return ("Pc is available.", data)
+        else:
+            return ("Pc not found.", None)
+    finally:
+        conn.close()
 def update_pc(id_number, serial_number, new_pc_brand, new_serial_number):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -54,16 +58,14 @@ def pc_belong():
     pc_brand = request.form.get("pc_brand", "").strip()
     serial_number = request.form.get("serial_number", "").strip()
     four_values = [holder_name, id_number, pc_brand, serial_number]
-    try:
-        if any (not val for val in four_values):
-            return "Error: All fields are required!"
-        elif not re.match(r"^\d{4}/\d{2}$", id_number):
-            return "Please write your id in the correct format.(0093/17)"
-        elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-            return "Serial_number must be a combinations of characters."
 
-    except (TypeError, ValueError) as e:
-        return f"Error occured: {e}."
+    if any (not val for val in four_values):
+        return "Error: All fields are required!"
+    elif not re.match(r"^\d{4}/\d{2}$", id_number):
+        return "Please write your id in the correct format.(0093/17)"
+    elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
+        return "Serial_number must be a combinations of characters."
+    
     register = register_pc(holder_name, id_number, serial_number, pc_brand)
     return render_template("pc_input.html", holder_name= holder_name, pc_brand= pc_brand, serial_number= serial_number, register = register)
 @app.route('/find', methods= [ 'GET','POST'])
@@ -74,15 +76,12 @@ def pc_search():
     serial_number = request.form.get("serial_number", "").strip()
     search_values = [id_number, serial_number]
 
-    try:
-        if any(not val for val in search_values):
-            return "Something is empty check your inputs."
-        elif not re.match(r"^\d{4}/\d{2}$", id_number):
-            return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
-        elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-            return "Serial_number must have a combination of characters."
-    except (TypeError, ValueError):
-        return "Unexpected error occurred."
+    if any(not val for val in search_values):
+        return "Something is empty check your inputs."
+    elif not re.match(r"^\d{4}/\d{2}$", id_number):
+        return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
+    elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
+        return "Serial_number must have a combination of characters."
     
     search = find_pc(id_number, serial_number)
     status_message = search[0]
@@ -106,6 +105,8 @@ def alter_pc():
     user_action = None
     found = None
     update = None
+    status_message = ""
+    show = ""
 
     user_action = request.form.get("action")
 
@@ -113,34 +114,35 @@ def alter_pc():
         id_number = request.form.get("id_number", "").strip()
         serial_number = request.form.get("serial_number", "").strip()
         values = [id_number, serial_number]
-        try:
-            if any(not val for val in values):
-                return "Something is empty check your inputs."
-            elif not re.match(r"^\d{4}/\d{2}$", id_number):
-                return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
-            elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-                return "Serial_number must have a combination of characters."
-        except (TypeError, ValueError):
-            return "Unexpected error occurred."
+
+        if any(not val for val in values):
+            return "Something is empty check your inputs."
+        elif not re.match(r"^\d{4}/\d{2}$", id_number):
+            return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
+        elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
+            return "Serial_number must have a combination of characters."
+        
         found = find_pc(id_number, serial_number)
         status_message = found[0]
         show = found[1]
-    if user_action == "update":
+    elif user_action == "update":
+        id_number = request.form.get("id_number", "").strip()
+        serial_number = request.form.get("serial_number", "").strip()
         new_serial_number = request.form.get("new_serial_number", "").strip()
         new_pc_brand = request.form.get("new_pc_brand", "").strip()
         values = [new_serial_number, new_pc_brand]
-        try:
-            if any(not val for val in values):
-                return "Something is empty check your inputs."
-            elif not re.match(r"^\d{4}/\d{2}$", id_number):
-                return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
-            elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-                return "Serial_number must have a combination of characters."
-        except (TypeError, ValueError):
-            return "Unexpected error occurred."
+
+        if any(not val for val in values):
+            return "Something is empty check your inputs."
+        elif not re.match(r"^\d{4}/\d{2}$", id_number):
+            return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
+        elif not re.match(r"^[A-Za-z0-9]+$", new_serial_number):
+            return "Serial_number must have a combination of characters."
+        
         update = update_pc(id_number, serial_number, new_pc_brand, new_serial_number)
         found = True
-
+        serial_number = new_serial_number
+        new_serial_number = ""
     return render_template("pc_update.html", id_number=id_number,serial_number= serial_number, found= found, status_message= status_message, show= show, new_serial_number= new_serial_number, new_pc_brand= new_pc_brand, update= update)
 if __name__ == "__main__":
     app.run(debug= True)
