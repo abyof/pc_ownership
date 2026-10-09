@@ -23,6 +23,9 @@
             {%if show%}
             <div>
                 <h1>Update pc data</h1>
+                <input type="hidden" name="id_number" value="{{id_number}}" placeholder="Enter your id number">
+                <input type="hidden" name="serial_number" value="{{serial_number}}" 
+                    placeholder="Enter your old serial number">
                 <input type="text" name="new_serial_number" value="{{new_serial_number}}"
                     placeholder="Enter your new serial number">
                 <input type="text" name="new_pc_brand" value="{{new_pc_brand}}" placeholder="Enter your new pc brand">
