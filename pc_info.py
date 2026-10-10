@@ -9,13 +9,12 @@ def pc_archive():
     try:
         cursor= conn.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS pc_data (holder_name TEXT, id_number TEXT PRIMARY KEY, serial_number TEXT, pc_brand TEXT)")
-    finally:
         conn.commit()
+    finally:
         conn.close()
 def register_pc(holder_name, id_number, serial_number, pc_brand):
     conn = sqlite3.connect(db_path)
     try: 
-
         cursor = conn.cursor()
         cursor.execute("INSERT INTO pc_data VALUES(?,?,?,?)", (holder_name, id_number, serial_number, pc_brand))
         conn.commit()
@@ -26,8 +25,8 @@ def register_pc(holder_name, id_number, serial_number, pc_brand):
         conn.close()
 def find_pc(id_number, serial_number):
     conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
     try:
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM pc_data WHERE id_number = ? AND serial_number = ?", (id_number, serial_number))
         data = cursor.fetchone()
         if data:
@@ -38,8 +37,9 @@ def find_pc(id_number, serial_number):
         conn.close()
 def update_pc(id_number, serial_number, new_pc_brand, new_serial_number):
     conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+    
     try:
+        cursor = conn.cursor()
         cursor.execute("UPDATE pc_data SET pc_brand= ?, serial_number= ? WHERE id_number= ? AND serial_number= ?", (new_pc_brand, new_serial_number, id_number, serial_number))
         if cursor.rowcount > 0:
             conn.commit()
