@@ -5,9 +5,9 @@ import re
 app = Flask(__name__)
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pc_document.db")
 def pc_archive():
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path) #opens the door for the database
     try:
-        cursor= conn.cursor()
+        cursor= conn.cursor() # (pointer)prepare the workers to carry out commands like create, insert, delete, find...
         cursor.execute("CREATE TABLE IF NOT EXISTS pc_data (holder_name TEXT, id_number TEXT PRIMARY KEY, serial_number TEXT, pc_brand TEXT)")
         conn.commit()
     finally:
@@ -48,6 +48,35 @@ def update_pc(id_number, serial_number, new_pc_brand, new_serial_number):
             return "Update failed. No pc found by the provided id number."
     finally:
         conn.close()
+def validate_errors(holder_name, id_number, pc_brand, serial_number):
+    four_values = [holder_name, id_number, pc_brand, serial_number]
+
+    if any (not val for val in four_values):
+        return "Error: All fields are required!"
+    elif not re.match(r"^\d{4}/\d{2}$", id_number):
+        return "Please write your id in the correct format.(0093/17)"
+    elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
+        return "Serial_number must be a combinations of characters."
+def search_validation(id_number, serial_number):
+    search_values = [id_number, serial_number]
+    if any (not val for val in search_values):
+        return "Error: All fields are required!"
+    elif not re.match(r"^\d{4}/\d{2}$", id_number):
+        return "Please write your id in the correct format.(0093/17)"
+    elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
+        return "Serial_number must be a combinations of characters."
+def update_validation(new_pc_brand, new_serial_number):
+    update_values = [new_pc_brand, new_serial_number]
+    clean_name = new_pc_brand.replace("-", "").replace("_", "")
+    if any(not val for val in update_values):
+        return "Error. All fields are required."
+    elif not clean_name.isalnum():
+        return "Error. Invalid characters used."
+    elif clean_name.isdigit():
+        return "Error. Pc name can't be numbers."
+    elif not re.match(r"^[A-Za-z0-9]+$", new_serial_number):
+        return "Serial_number must be a combinations of characters."
+    
 @app.route('/')
 def home():
     return render_template("pc_input.html")
@@ -57,15 +86,9 @@ def pc_belong():
     id_number = request.form.get("id_number", "").strip()
     pc_brand = request.form.get("pc_brand", "").strip()
     serial_number = request.form.get("serial_number", "").strip()
-    four_values = [holder_name, id_number, pc_brand, serial_number]
-
-    if any (not val for val in four_values):
-        return "Error: All fields are required!"
-    elif not re.match(r"^\d{4}/\d{2}$", id_number):
-        return "Please write your id in the correct format.(0093/17)"
-    elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-        return "Serial_number must be a combinations of characters."
-    
+    error = validate_errors(holder_name, id_number, pc_brand, serial_number)
+    if error:
+        return error
     register = register_pc(holder_name, id_number, serial_number, pc_brand)
     return render_template("pc_input.html", holder_name= holder_name, pc_brand= pc_brand, serial_number= serial_number, register = register)
 @app.route('/find', methods= [ 'GET','POST'])
@@ -74,15 +97,9 @@ def pc_search():
         return render_template("pc_find.html")
     id_number = request.form.get("id_number", "").strip()
     serial_number = request.form.get("serial_number", "").strip()
-    search_values = [id_number, serial_number]
-
-    if any(not val for val in search_values):
-        return "Something is empty check your inputs."
-    elif not re.match(r"^\d{4}/\d{2}$", id_number):
-        return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
-    elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-        return "Serial_number must have a combination of characters."
-    
+    error = search_validation(id_number, serial_number)
+    if error:
+        return error 
     search = find_pc(id_number, serial_number)
     status_message = search[0]
     info = search[1]
@@ -113,15 +130,9 @@ def alter_pc():
     if user_action == "verify":
         id_number = request.form.get("id_number", "").strip()
         serial_number = request.form.get("serial_number", "").strip()
-        values = [id_number, serial_number]
-
-        if any(not val for val in values):
-            return "Something is empty check your inputs."
-        elif not re.match(r"^\d{4}/\d{2}$", id_number):
-            return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
-        elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-            return "Serial_number must have a combination of characters."
-        
+        error = search_validation(id_number, serial_number)
+        if error:
+            return error        
         found = find_pc(id_number, serial_number)
         status_message = found[0]
         show = found[1]
@@ -130,15 +141,9 @@ def alter_pc():
         serial_number = request.form.get("serial_number", "").strip()
         new_serial_number = request.form.get("new_serial_number", "").strip()
         new_pc_brand = request.form.get("new_pc_brand", "").strip()
-        values = [new_serial_number, new_pc_brand]
-
-        if any(not val for val in values):
-            return "Something is empty check your inputs."
-        elif not re.match(r"^\d{4}/\d{2}$", id_number):
-            return "Invalid id_number. insert your id in this form. e.g, 0024/14. "
-        elif not re.match(r"^[A-Za-z0-9]+$", new_serial_number):
-            return "Serial_number must have a combination of characters."
-        
+        error = update_validation(new_pc_brand, new_serial_number)
+        if error:
+            return error
         update = update_pc(id_number, serial_number, new_pc_brand, new_serial_number)
         found = True
         serial_number = new_serial_number
