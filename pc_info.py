@@ -48,34 +48,57 @@ def update_pc(id_number, serial_number, new_pc_brand, new_serial_number):
             return "Update failed. No pc found by the provided id number."
     finally:
         conn.close()
-def validate_errors(holder_name, id_number, pc_brand, serial_number):
-    four_values = [holder_name, id_number, pc_brand, serial_number]
+def validate_id(id_number):
+    clean_id = re.match(r"^\d{4}/\d{2}$", id_number)
+    if not clean_id:
+        return "Please write your id in the correct format.(0093/17)"
+def validate_serial(serial_number):
+    clean_serial = re.match(r"^[A-Za-z0-9]+$", serial_number)
+    if not clean_serial:
+        return "Serial_number must be a combinations of characters."
+def validate_new_serial(new_serial_number):
+    clean_serial = re.match(r"^[A-Za-z0-9]+$", new_serial_number)
+    if not clean_serial:
+        return "Serial_number must be a combinations of characters."
 
+def register_validation(holder_name, id_number, pc_brand, serial_number):
+    four_values = [holder_name, id_number, pc_brand, serial_number]
+    clean_brand = pc_brand.replace("-", "").replace("_", "")
+    invalid_id = validate_id(id_number)
+    invalid_serial = validate_serial(serial_number)
     if any (not val for val in four_values):
         return "Error: All fields are required!"
-    elif not re.match(r"^\d{4}/\d{2}$", id_number):
-        return "Please write your id in the correct format.(0093/17)"
-    elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-        return "Serial_number must be a combinations of characters."
+    elif not clean_brand.isalnum():
+            return "Error. Invalid characters used."
+    elif clean_brand.isdigit():
+        return "Error. Pc name can't be numbers."
+    elif invalid_id:
+        return invalid_id
+    elif invalid_serial:
+        return invalid_serial
 def search_validation(id_number, serial_number):
     search_values = [id_number, serial_number]
+    invalid_id = validate_id(id_number)
+    invalid_serial = validate_serial(serial_number)
     if any (not val for val in search_values):
         return "Error: All fields are required!"
-    elif not re.match(r"^\d{4}/\d{2}$", id_number):
-        return "Please write your id in the correct format.(0093/17)"
-    elif not re.match(r"^[A-Za-z0-9]+$", serial_number):
-        return "Serial_number must be a combinations of characters."
+    elif invalid_id:
+        return invalid_id
+    elif invalid_serial:
+        return invalid_serial
+    
 def update_validation(new_pc_brand, new_serial_number):
     update_values = [new_pc_brand, new_serial_number]
-    clean_name = new_pc_brand.replace("-", "").replace("_", "")
+    clean_brand = new_pc_brand.replace("-", "").replace("_", "")
+    invalid_serial = validate_new_serial(new_serial_number)
     if any(not val for val in update_values):
         return "Error. All fields are required."
-    elif not clean_name.isalnum():
+    elif not clean_brand.isalnum():
         return "Error. Invalid characters used."
-    elif clean_name.isdigit():
+    elif clean_brand.isdigit():
         return "Error. Pc name can't be numbers."
-    elif not re.match(r"^[A-Za-z0-9]+$", new_serial_number):
-        return "Serial_number must be a combinations of characters."
+    elif invalid_serial:
+        return invalid_serial
     
 @app.route('/')
 def home():
@@ -86,9 +109,9 @@ def pc_belong():
     id_number = request.form.get("id_number", "").strip()
     pc_brand = request.form.get("pc_brand", "").strip()
     serial_number = request.form.get("serial_number", "").strip()
-    error = validate_errors(holder_name, id_number, pc_brand, serial_number)
+    error = register_validation(holder_name, id_number, pc_brand, serial_number)
     if error:
-        return error
+        return render_template("pc_input.html", error= error)
     register = register_pc(holder_name, id_number, serial_number, pc_brand)
     return render_template("pc_input.html", holder_name= holder_name, pc_brand= pc_brand, serial_number= serial_number, register = register)
 @app.route('/find', methods= [ 'GET','POST'])
@@ -99,7 +122,7 @@ def pc_search():
     serial_number = request.form.get("serial_number", "").strip()
     error = search_validation(id_number, serial_number)
     if error:
-        return error 
+        return render_template("pc_find.html", error= error)
     search = find_pc(id_number, serial_number)
     status_message = search[0]
     info = search[1]
@@ -124,6 +147,7 @@ def alter_pc():
     update = None
     status_message = ""
     show = ""
+    error = None
 
     user_action = request.form.get("action")
 
@@ -132,13 +156,16 @@ def alter_pc():
         serial_number = request.form.get("serial_number", "").strip()
         error = search_validation(id_number, serial_number)
         if error:
-            return error        
+            return render_template("pc_update.html", error= error)        
         found = find_pc(id_number, serial_number)
         status_message = found[0]
         show = found[1]
     elif user_action == "update":
-        id_number = request.form.get("id_number", "").strip()
-        serial_number = request.form.get("serial_number", "").strip()
+        id_number = request.form.get("valid_id_number", "").strip()
+        serial_number = request.form.get("valid_serial_number", "").strip()
+        error = search_validation(id_number, serial_number)
+        if error:
+            return render_template("pc_update.html", error= error) 
         new_serial_number = request.form.get("new_serial_number", "").strip()
         new_pc_brand = request.form.get("new_pc_brand", "").strip()
         error = update_validation(new_pc_brand, new_serial_number)
@@ -150,4 +177,5 @@ def alter_pc():
         new_serial_number = ""
     return render_template("pc_update.html", id_number=id_number,serial_number= serial_number, found= found, status_message= status_message, show= show, new_serial_number= new_serial_number, new_pc_brand= new_pc_brand, update= update)
 if __name__ == "__main__":
+    pc_archive()
     app.run(debug= True)
