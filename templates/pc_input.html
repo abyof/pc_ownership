@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charser="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Pc registration</title>
     <link rel="stylesheet" href="{{url_for('static', filename='pc_des.css')}}">
 </head>
 <body>
-   
+    <nav class="nav-bar">
+        <h1 class="logo">Verify Pc</h1>
+        <div class="nav-items">
+            <a href="/belong">Home</a>
+            <a href="/find">Search</a>
+            <a href="/update">Update</a>
+        </div>
+    </nav>
     <form action="/belong" method="POST">
         <div class="content">
             <div class="box">
@@ -24,12 +32,15 @@
         
                     <input type="text" name="serial_number" value="{{serial_number}}" placeholder="Enter serial number">
                 </div>
-            
+                {%if error%}
+                <h3 class="error">{{error}}</h3>
+                {% endif %}
                 <button type="submit" class="register">Register</button>
+                {% if register %}
+                <h3 class="reg">{{register}}</h3>
+                {% endif %}
             </div>
-            {% if register %}
-            <h3>{{register}}</h3>
-            {% endif %}
+
             </form>
         </div>
         
