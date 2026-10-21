@@ -170,7 +170,7 @@ def alter_pc():
         new_pc_brand = request.form.get("new_pc_brand", "").strip()
         error = update_validation(new_pc_brand, new_serial_number)
         if error:
-            return error
+            return render_template("pc_update.html", error= error)
         update = update_pc(id_number, serial_number, new_pc_brand, new_serial_number)
         found = True
         serial_number = new_serial_number
