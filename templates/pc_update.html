@@ -9,6 +9,19 @@
 </head>
 
 <body>
+    <nav class="nav-bar">
+        <div class="logo">Verify Pc</div>
+        <button class="nav-toggle" >
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        <ul class="nav-items">
+            <li><a href="/">Home</a></li>
+            <li><a href="/find">Search</a></li>
+            <li><a href="/update">Update</a></li>
+        </ul>
+    </nav>
     <form action="/update" method="POST">
         <div class="verify-box">
             <h1 class="verify-title">verify pc data</h1>
@@ -16,22 +29,31 @@
                 <input type="text" name="id_number" value="{{id_number}}" placeholder="Enter your id number">
                 <input type="text" name="serial_number" value="{{serial_number}}" placeholder="Enter your old serial number">
             </div>
+            {%if error%}
+            <h3 class="error">{{error}}</h3>
+            {% endif %}
             <button type="submit" name="action" value="verify" class="verify-btn">Verify pc</button>
-            <h3>{{status_message}}</h3>
+            <h3 class="stat">{{status_message}}</h3>
+            
         </div>
-        <div>
-            {%if show%}
-            <div>
-                <h1>Update pc data</h1>
-                <input type="hidden" name="id_number" value="{{id_number}}" placeholder="Enter your id number">
-                <input type="hidden" name="serial_number" value="{{serial_number}}" 
-                    placeholder="Enter your old serial number">
-                <input type="text" name="new_serial_number" value="{{new_serial_number}}"
-                    placeholder="Enter your new serial number">
+        {%if show%}
+        <div class="container">
+            <h1 class="update-title">Update pc data</h1>
+            <h3 class="update-title">You can update your pc's data.</h3>
+            <div class="update-input">
+                <input type="hidden" name="valid_id_number" value="{{id_number}}" placeholder="Enter your id number">
+                <input type="hidden" name="valid_serial_number" value="{{serial_number}}" placeholder="Enter your old serial number">
+                <input type="text" name="new_serial_number" value="{{new_serial_number}}" placeholder="Enter your new serial number">
                 <input type="text" name="new_pc_brand" value="{{new_pc_brand}}" placeholder="Enter your new pc brand">
             </div>
-            <button type="submit" name="action" value="update">Update Pc</button>
-        </div>   
+            {%if error%}
+            <h3 class="error">{{error}}</h3>
+            {% endif %}
+            <button type="submit" name="action" value="update" class="update-btn">Update Pc</button>
+        </div>
+        {% endif %}
+        {%if update%}
+        <h3 class="stat">{{update}}</h3>
         {% endif %}
     </form>
 </body>
